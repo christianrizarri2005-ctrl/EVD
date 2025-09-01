@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Palosebo - 2 Player Game</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(to bottom, #a2d5f2, #07689f);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+      color: white;
+      user-select: none;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 4px #000;
+    }
+
+    #game-area {
+      display: flex;
+      gap: 40px;
+    }
+
+    .game-container {
+      position: relative;
+      height: 400px;
+      width: 80px;
+    }
+
+    .pole {
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(to top, #8d6e63, #a1887f);
+      border-radius: 40px;
+      box-shadow: inset 0 0 10px #4e342e;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+    }
+
+    .man {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 90px;
+      z-index: 2;
+    }
+
+    .head {
+      width: 20px;
+      height: 20px;
+      background: #fdd835;
+      border-radius: 50%;
+      margin: 0 auto;
+    }
+
+    .body {
+      width: 6px;
+      height: 30px;
+      background: #3e2723;
+      margin: 4px auto;
+      border-radius: 3px;
+    }
+
+    .arms, .legs {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 6px;
+    }
+
+    .arm, .leg {
+      border-radius: 3px;
+    }
+
+    .arm {
+      width: 6px;
+      height: 15px;
+      background: #3e2723;
+    }
+
+    .leg {
+      width: 8px;
+      height: 25px;
+      background: #5d4037;
+    }
+
+    #message {
+      font-size: 1.2rem;
+      min-height: 40px;
+      text-align: center;
+      margin-top: 20px;
+      text-shadow: 1px 1px 3px #003350;
+    }
+
+    #instructions {
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    #sun {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle at center, #ffeb3b, #fbc02d);
+      border-radius: 50%;
+      box-shadow: 0 0 30px 10px rgba(255, 223, 0, 0.5);
+      z-index: 0;
+}
+
+  </style>
+</head>
+<body>
+
+<h1>Palosebo 🧗 - 2 Player Mode</h1>
+  
+  <div id="sun"></div> <!-- 🌞 Sun added here -->
+
+  <div id="game-area">
+    <!-- ... rest of the game ... -->
+  </div>
+
+<div id="game-area">
+  <!-- Player 1 -->
+  <div class="game-container" id="container1">
+    <div class="pole"></div>
+    <div class="man" id="man1">
+      <div class="head"></div>
+      <div class="arms">
+        <div class="arm"></div>
+        <div class="arm"></div>
+      </div>
+      <div class="body"></div>
+      <div class="legs">
+        <div class="leg"></div>
+        <div class="leg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player 2 -->
+  <div class="game-container" id="container2">
+    <div class="pole"></div>
+    <div class="man" id="man2">
+      <div class="head"></div>
+      <div class="arms">
+        <div class="arm"></div>
+        <div class="arm"></div>
+      </div>
+      <div class="body"></div>
+      <div class="legs">
+        <div class="leg"></div>
+        <div class="leg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="message">Player 1: SPACE | Player 2: ↑ Arrow</div>
+<div id="instructions">Climb to 10! 3 slips and you’re out!</div>
+
+<script>
+  const players = [
+    {
+      man: document.getElementById('man1'),
+      container: document.getElementById('container1'),
+      position: 0,
+      fails: 0,
+      key: 'Space',
+      name: 'Player 1',
+    },
+    {
+      man: document.getElementById('man2'),
+      container: document.getElementById('container2'),
+      position: 0,
+      fails: 0,
+      key: 'ArrowUp',
+      name: 'Player 2',
+    }
+  ];
+
+  const maxUnits = 10;
+  const maxFails = 3;
+  const message = document.getElementById('message');
+
+  function updatePlayerPosition(player) {
+    const poleHeight = player.container.clientHeight;
+    const unitHeight = poleHeight / maxUnits;
+    player.man.style.bottom = `${player.position * unitHeight}px`;
+  }
+
+  function showMessage(text, color = 'white') {
+    message.textContent = text;
+    message.style.color = color;
+  }
+
+  function slipAnimation(player) {
+    player.man.style.transition = 'transform 0.2s';
+    player.man.style.transform = 'translateX(10px)';
+    setTimeout(() => {
+      player.man.style.transform = 'translateX(-10px)';
+      setTimeout(() => {
+        player.man.style.transform = 'translateX(-50%)';
+      }, 150);
+    }, 150);
+  }
+
+  function handleClimb(player) {
+    if (player.fails >= maxFails) {
+      showMessage(`${player.name} ❌ is out of the game!`, '#ff4444');
+      return;
+    }
+
+    if (player.position >= maxUnits) {
+      showMessage(`${player.name} 🏆 wins!`, '#00ffcc');
+      return;
+    }
+
+    if (Math.random() < 0.35) {
+      const slip = Math.floor(Math.random() * 3) + 1;
+      player.position = Math.max(0, player.position - slip);
+      player.fails++;
+      updatePlayerPosition(player);
+      slipAnimation(player);
+      showMessage(`${player.name} slipped ${slip} units! Fails: ${player.fails}/${maxFails}`, '#ff6666');
+    } else {
+      player.position++;
+      updatePlayerPosition(player);
+      showMessage(`${player.name} climbed! Position: ${player.position}`, '#90ee90');
+    }
+
+    if (player.position >= maxUnits) {
+      showMessage(`${player.name} 🏆 reached the top and wins!`, '#ffff00');
+    } else if (player.fails >= maxFails) {
+      showMessage(`${player.name} ☠️ slipped too much! Out.`, '#ff4444');
+    }
+  }
+
+  window.addEventListener('keydown', (e) => {
+    players.forEach(player => {
+      if (e.code === player.key) {
+        e.preventDefault();
+        handleClimb(player);
+      }
+    });
+  });
+
+  // Initialize positions
+  players.forEach(updatePlayerPosition);
+</script>
+
+</body>
+</html>
